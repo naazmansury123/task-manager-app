@@ -1,0 +1,123 @@
+.task-manager {
+  padding: 20px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+.task-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.pending-tasks {
+  background-color: #f8d7da; /* Red background */
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.completed-tasks {
+  background-color: #d4edda; /* Green background */
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.dark-theme .pending-tasks {
+  background-color: #5a2d2d;
+}
+
+.dark-theme .completed-tasks {
+  background-color: #2d5a2d;
+}
+
+.task {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.task:hover {
+  transform: translateY(-3px);
+}
+
+.dark-theme .task {
+  background: #2c2c54;
+}
+
+.task-actions button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-task-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 24px;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.dark-theme .modal {
+  background: #1e1e3f;
+}
+
+@media (max-width: 768px) {
+  .task-sections {
+    grid-template-columns: 1fr;
+  }
+}

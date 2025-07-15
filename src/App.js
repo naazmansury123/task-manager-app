@@ -1,24 +1,22 @@
+// src/App.js
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import Auth from './components/Auth/Auth';
 import TaskManager from './components/TaskManager/TaskManager';
 import { getFromLocalStorage, removeFromLocalStorage, saveToLocalStorage } from './utils/localStorage';
-import './styles/App.css';
-import './styles/Auth.css';
-import './styles/TaskManager.css';
+
+const AppContainer = styled.div`
+  min-height: 100vh;
+`;
 
 function App() {
   const [user, setUser] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
+    // Check if a user is already logged in from a previous session
     const loggedInUser = getFromLocalStorage('loggedInUser');
     if (loggedInUser) {
       setUser(loggedInUser);
-    }
-    const theme = getFromLocalStorage('theme');
-    if (theme === 'dark') {
-      setIsDarkMode(true);
-      document.body.classList.add('dark-theme');
     }
   }, []);
 
@@ -35,30 +33,18 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     removeFromLocalStorage('loggedInUser');
-  };
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode ? 'dark' : 'light';
-    setIsDarkMode(!isDarkMode);
-    saveToLocalStorage('theme', newTheme);
-    if (newTheme === 'dark') {
-      document.body.classList.add('dark-theme');
-    } else {
-      document.body.classList.remove('dark-theme');
-    }
+    // Also clear tasks for the next user
+    removeFromLocalStorage('tasks');
   };
 
   return (
-    <div className="App">
-      <button className="theme-toggle" onClick={toggleTheme}>
-        {isDarkMode ? '🌞' : '🌗'}
-      </button>
+    <AppContainer>
       {user ? (
         <TaskManager onLogout={handleLogout} />
       ) : (
         <Auth onLogin={handleLogin} onRegister={handleRegister} />
       )}
-    </div>
+    </AppContainer>
   );
 }
 

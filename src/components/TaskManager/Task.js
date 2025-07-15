@@ -1,113 +1,119 @@
+// src/components/TaskManager/Task.js
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
-// --- Styled Components (No changes needed here) ---
 const TaskWrapper = styled(motion.div)`
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--task-card-bg);
   padding: 20px;
   margin-bottom: 15px;
   border-radius: 12px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px var(--shadow-color);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  cursor: grab;
-
-  &:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    background-color: ${(props) => `var(--priority-${props.priority})`};
+  flex-direction: column;
+  gap: 15px;
+  transition: box-shadow 0.2s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 `;
 
 const TaskContent = styled.div`
-  flex-grow: 1;
-`;
-
-const TaskTitle = styled.h3`
-  margin: 0 0 5px 0;
-  font-size: 1.1rem;
-`;
-
-const TaskDescription = styled.p`
-  margin: 0;
-  color: var(--color-subtle-text);
-  font-size: 0.9rem;
+  h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+  }
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    white-space: pre-wrap; /* Allows line breaks in description */
+  }
 `;
 
 const TaskActions = styled.div`
   display: flex;
   gap: 10px;
+  align-self: flex-end;
 `;
 
 const ActionButton = styled.button`
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
   transition: all 0.2s ease;
-
   &:hover {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
+    border-color: #000;
+    color: #000;
   }
 `;
-// --- End of Styled Components ---
 
+const EditForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+  }
+  
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+`;
 
-const Task = ({ task, onDelete }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition
-  } = useSortable({ id: task.id });
+const Task = ({ task, index, onUpdate, onDelete, onToggleComplete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition
+  const handleSave = (e) => {
+    e.preventDefault();
+    onUpdate(task.id, { title, description });
+    setIsEditing(false);
   };
 
-  // We are removing the editing state for simplicity with drag-and-drop
-  // You can add it back if needed, but it complicates the UI
   return (
     <TaskWrapper
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      priority={task.priority}
       layout
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
-      <TaskContent>
-        <TaskTitle>{task.title}</TaskTitle>
-        <TaskDescription>{task.description}</TaskDescription>
-      </TaskContent>
-      <TaskActions>
-        {/* Edit functionality can be re-added here */}
-        <ActionButton onClick={(e) => {
-          e.stopPropagation(); // Prevent drag from starting on delete
-          onDelete();
-        }}>Delete</ActionButton>
-      </TaskActions>
+      {isEditing ? (
+        <EditForm onSubmit={handleSave}>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+          <TaskActions>
+            <ActionButton type="submit">Save</ActionButton>
+          </TaskActions>
+        </EditForm>
+      ) : (
+        <>
+          <TaskContent>
+            <h3>#{index + 1}: {task.title}</h3>
+            <p>{task.description}</p>
+          </TaskContent>
+          <TaskActions>
+            <ActionButton onClick={() => setIsEditing(true)}>📝 Edit</ActionButton>
+            {!task.completed && (
+              <ActionButton onClick={() => onToggleComplete(task.id)}>✅ Mark as Completed</ActionButton>
+            )}
+            <ActionButton onClick={() => onDelete(task.id)}>❌ Delete</ActionButton>
+          </TaskActions>
+        </>
+      )}
     </TaskWrapper>
   );
 };

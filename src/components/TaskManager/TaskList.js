@@ -1,22 +1,23 @@
+// src/components/TaskManager/TaskList.js
 import React from 'react';
+import { AnimatePresence } from 'framer-motion';
 import Task from './Task';
 
-const TaskList = ({ tasks, title, onUpdate, onDelete, onToggleComplete }) => {
+const TaskList = ({ tasks, onUpdate, onDelete, onToggleComplete }) => {
   return (
-    <div className="task-list-section">
-      <h2>{title}</h2>
-      <div className="task-list">
+    <div>
+      <AnimatePresence>
         {tasks.map((task, index) => (
           <Task
             key={task.id}
-            task={task}
             index={index}
+            task={task}
             onUpdate={onUpdate}
             onDelete={onDelete}
             onToggleComplete={onToggleComplete}
           />
         ))}
-      </div>
+      </AnimatePresence>
     </div>
   );
 };

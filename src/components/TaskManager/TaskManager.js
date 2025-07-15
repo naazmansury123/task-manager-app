@@ -1,61 +1,66 @@
+// src/components/TaskManager/TaskManager.js
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { AnimatePresence } from 'framer-motion';
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-
-import Task from './Task'; // We will update this file next
+import TaskList from './TaskList';
 import AddTaskForm from './AddTaskForm';
 import { getFromLocalStorage, saveToLocalStorage } from '../../utils/localStorage';
 
-// --- Styled Components (No changes needed here) ---
 const TaskManagerWrapper = styled.div`
-  padding: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
+  background-color: var(--bg-color);
+  min-height: 100vh;
 `;
 
 const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
-  h1 { font-size: 2.5rem; margin: 0; }
+  padding: 15px 40px;
+  background-color: var(--header-bg);
+  box-shadow: 0 1px 3px var(--shadow-color);
+
+  h1 {
+    font-size: 1.8rem;
+    margin: 0;
+  }
 `;
 
 const LogoutButton = styled.button`
-  background: var(--color-secondary);
-  color: var(--color-text);
+  background: var(--logout-bg);
+  color: white;
   padding: 10px 20px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   font-size: 1rem;
-  transition: background 0.2s ease;
-  &:hover { background: var(--color-primary); }
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const TaskSections = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
+  padding: 40px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 20px;
+  }
 `;
 
 const TaskColumn = styled.div`
-  background: rgba(0, 0, 0, 0.2);
   padding: 25px;
   border-radius: 15px;
-  min-height: 400px;
+  &.pending {
+    background-color: var(--pending-bg);
+  }
+  &.completed {
+    background-color: var(--completed-bg);
+  }
 `;
 
 const ColumnTitle = styled.h2`
@@ -63,6 +68,7 @@ const ColumnTitle = styled.h2`
   margin-top: 0;
   margin-bottom: 25px;
   font-weight: 600;
+  color: var(--text-primary);
 `;
 
 const AddTaskButton = styled.button`
@@ -72,85 +78,56 @@ const AddTaskButton = styled.button`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background-color: var(--fab-bg);
   color: white;
   border: none;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  line-height: 1;
+  padding-bottom: 5px;
   cursor: pointer;
-  box-shadow: 0 5px 20px rgba(195, 7, 63, 0.4);
-  transition: transform 0.2s ease;
-  &:hover { transform: scale(1.1); }
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1000;
+
+  &:hover {
+    transform: scale(1.05) rotate(15deg);
+    box-shadow: 0 6px 16px rgba(26, 115, 232, 0.5);
+  }
 `;
-// --- End of Styled Components ---
 
 const TaskManager = ({ onLogout }) => {
-  const [tasks, setTasks] = useState({ pending: [], completed: [] });
+  const [tasks, setTasks] = useState([]);
   const [showAddTaskForm, setShowAddTaskForm] = useState(false);
 
   useEffect(() => {
-    const storedTasks = getFromLocalStorage('tasks') || { pending: [], completed: [] };
-    setTasks(storedTasks);
+    setTasks(getFromLocalStorage('tasks') || []);
   }, []);
 
-  useEffect(() => {
-    saveToLocalStorage('tasks', tasks);
-  }, [tasks]);
-
-  const sensors = useSensors(useSensor(PointerSensor));
+  const saveTasks = (newTasks) => {
+    setTasks(newTasks);
+    saveToLocalStorage('tasks', newTasks);
+  };
 
   const addTask = (taskData) => {
-    const newTask = { id: `task-${Date.now()}`, ...taskData };
-    setTasks((prev) => ({ ...prev, pending: [...prev.pending, newTask] }));
+    const newTask = { id: Date.now(), ...taskData, completed: false };
+    saveTasks([...tasks, newTask]);
     setShowAddTaskForm(false);
   };
-  
-  const deleteTask = (id, status) => {
-      setTasks(prev => ({
-          ...prev,
-          [status]: prev[status].filter(task => task.id !== id)
-      }))
-  }
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    const activeContainer = active.data.current.sortable.containerId;
-    const overContainer = over.data.current?.sortable.containerId || over.id;
-    
-    if (activeContainer === overContainer) {
-      // Reordering in the same column
-      setTasks(prev => {
-        const activeIndex = prev[activeContainer].findIndex(t => t.id === activeId);
-        const overIndex = prev[overContainer].findIndex(t => t.id === overId);
-        return {
-          ...prev,
-          [activeContainer]: arrayMove(prev[activeContainer], activeIndex, overIndex)
-        };
-      });
-    } else {
-      // Moving to a different column
-      let movedTask;
-      setTasks(prev => {
-        const activeItems = prev[activeContainer];
-        const overItems = prev[overContainer];
-        const activeIndex = activeItems.findIndex(t => t.id === activeId);
-        movedTask = activeItems[activeIndex];
-
-        const newActiveItems = activeItems.filter(t => t.id !== activeId);
-        const newOverItems = [...overItems, movedTask];
-
-        return {
-          ...prev,
-          [activeContainer]: newActiveItems,
-          [overContainer]: newOverItems,
-        };
-      });
-    }
+  const updateTask = (id, updatedData) => {
+    saveTasks(tasks.map(t => (t.id === id ? { ...t, ...updatedData } : t)));
   };
+
+  const deleteTask = (id) => {
+    saveTasks(tasks.filter(t => t.id !== id));
+  };
+
+  const toggleComplete = (id) => {
+    saveTasks(tasks.map(t => (t.id === id ? { ...t, completed: !t.completed } : t)));
+  };
+
+  const pendingTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
 
   return (
     <TaskManagerWrapper>
@@ -159,33 +136,21 @@ const TaskManager = ({ onLogout }) => {
         <LogoutButton onClick={onLogout}>Logout</LogoutButton>
       </Header>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <TaskSections>
-          <TaskColumn>
-            <ColumnTitle>Pending Tasks</ColumnTitle>
-            <SortableContext items={tasks.pending} strategy={verticalListSortingStrategy}>
-              <AnimatePresence>
-                {tasks.pending.map(task => (
-                  <Task key={task.id} task={task} onDelete={() => deleteTask(task.id, 'pending')} />
-                ))}
-              </AnimatePresence>
-            </SortableContext>
-          </TaskColumn>
-          <TaskColumn>
-            <ColumnTitle>Completed Tasks</ColumnTitle>
-            <SortableContext items={tasks.completed} strategy={verticalListSortingStrategy}>
-              <AnimatePresence>
-                {tasks.completed.map(task => (
-                  <Task key={task.id} task={task} onDelete={() => deleteTask(task.id, 'completed')} />
-                ))}
-              </AnimatePresence>
-            </SortableContext>
-          </TaskColumn>
-        </TaskSections>
-      </DndContext>
+      <TaskSections>
+        <TaskColumn className="pending">
+          <ColumnTitle>Pending Tasks</ColumnTitle>
+          <TaskList tasks={pendingTasks} onUpdate={updateTask} onDelete={deleteTask} onToggleComplete={toggleComplete} />
+        </TaskColumn>
+        <TaskColumn className="completed">
+          <ColumnTitle>Completed Tasks</ColumnTitle>
+          <TaskList tasks={completedTasks} onUpdate={updateTask} onDelete={deleteTask} onToggleComplete={toggleComplete} />
+        </TaskColumn>
+      </TaskSections>
 
       <AddTaskButton onClick={() => setShowAddTaskForm(true)}>+</AddTaskButton>
-      {showAddTaskForm && <AddTaskForm onAddTask={addTask} onCancel={() => setShowAddTaskForm(false)} />}
+      <AnimatePresence>
+        {showAddTaskForm && <AddTaskForm onAddTask={addTask} onCancel={() => setShowAddTaskForm(false)} />}
+      </AnimatePresence>
     </TaskManagerWrapper>
   );
 };

@@ -1,25 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* --- Global Styles & Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-  --font-sans: 'Inter', sans-serif;
-
-  --color-bg: #1A1A1D;
-  --color-primary: #C3073F;
-  --color-secondary: #6F2232;
-  --color-text: #FFFFFF;
-  --color-subtle-text: #95A3B8;
-  --color-border: rgba(255, 255, 255, 0.1);
-
-  --priority-high: #9a031e;
-  --priority-medium: #e85d04;
-  --priority-low: #00b4d8;
+  --font-main: 'Poppins', sans-serif;
+  --bg-color: #f0f4f8; /* Light blue-grey background */
+  --header-bg: #ffffff;
+  --pending-bg: #fce8e6; /* Soft Red */
+  --completed-bg: #e6f4ea; /* Soft Green */
+  --task-card-bg: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --logout-bg: #d9534f;
+  --fab-bg: #1a73e8; /* Google Blue for the FAB */
+  --border-color: #dfe1e5;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --modal-overlay-bg: rgba(32, 33, 36, 0.6);
 }
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  font-family: var(--font-main);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-smoothing: grayscale;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }

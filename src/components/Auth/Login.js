@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getFromLocalStorage } from '../../utils/localStorage';
+import { FormWrapper, Form, Title, Input, Button, ToggleText, ErrorText } from './SharedAuthStyles';
 
 const Login = ({ onLogin, toggleForm }) => {
   const [email, setEmail] = useState('');
@@ -12,38 +13,23 @@ const Login = ({ onLogin, toggleForm }) => {
     if (user && user.email === email && user.password === password) {
       onLogin(user);
     } else {
-      setError('Invalid email or password');
+      setError('Invalid email or password.');
     }
   };
 
   return (
-    <div className="auth-form">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="error">{error}</p>}
-        <button type="submit">Login</button>
-      </form>
-      <p>
-        Don't have an account?{' '}
-        <span className="toggle-form" onClick={toggleForm}>
-          Register
-        </span>
-      </p>
-    </div>
+    <FormWrapper>
+      <Title>Welcome Back!</Title>
+      <Form onSubmit={handleSubmit}>
+        <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        {error && <ErrorText>{error}</ErrorText>}
+        <Button type="submit">Login</Button>
+      </Form>
+      <ToggleText>
+        Don't have an account? <span onClick={toggleForm}>Register</span>
+      </ToggleText>
+    </FormWrapper>
   );
 };
 
